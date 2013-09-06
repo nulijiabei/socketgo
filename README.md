@@ -17,3 +17,6 @@ socketgo
 
 	go install github.com/nulijiabei/socketgo
 	
+
+# 使用
+import socket "github.com/nulijiabei/socketgo"
