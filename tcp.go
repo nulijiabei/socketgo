@@ -8,7 +8,7 @@ import (
 
 // 根据 TCP 实现接口
 type TCP struct {
-	addr     string       // 要连接地址与端口
+	Addr     string       // 要连接地址与端口
 	conn     *net.TCPConn // 当前的连接，如果 nil 表示没有连接
 	maxRetry int          // 最大重试次数
 }
@@ -18,7 +18,7 @@ func NewTCP(addr string, maxRetry int) *TCP {
 	// 创建TCP对象
 	tcp := new(TCP)
 	// 赋值地址
-	tcp.addr = addr
+	tcp.Addr = addr
 	// 赋值最大连接数
 	tcp.maxRetry = tcp.maxRetry
 	// 未连接状态为空
@@ -30,7 +30,7 @@ func NewTCP(addr string, maxRetry int) *TCP {
 // 进行连接
 func (tcp *TCP) connect() error {
 	// 创建地址结构
-	addr, err := net.ResolveTCPAddr("tcp", tcp.addr)
+	addr, err := net.ResolveTCPAddr("tcp", tcp.Addr)
 	if err != nil {
 		// 返回错误
 		return err
@@ -65,7 +65,7 @@ func (tcp *TCP) connect() error {
 func (tcp *TCP) ReadWrite(rw func(conn *net.TCPConn) error) error {
 	// 判断连接是否在使用
 	for tcp.conn != nil {
-		log.Printf("connection [%s] in use", tcp.addr)
+		log.Printf("connection [%s] in use", tcp.Addr)
 		time.Sleep(1 * time.Second)
 	}
 	// 连接TCP
@@ -79,7 +79,7 @@ func (tcp *TCP) ReadWrite(rw func(conn *net.TCPConn) error) error {
 		// 断开连接
 		closeErr := tcp.close()
 		if closeErr != nil {
-			log.Printf("close the [%s] connection fail", tcp.addr)
+			log.Printf("close the [%s] connection fail", tcp.Addr)
 		}
 	})()
 	// 调用连接方法，传入TCP对象参数，并返回

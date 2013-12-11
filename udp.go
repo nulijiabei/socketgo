@@ -8,7 +8,7 @@ import (
 
 // 根据 UDP 实现接口
 type UDP struct {
-	addr     string       // 要连接地址与端口
+	Addr     string       // 要连接地址与端口
 	conn     *net.UDPConn // 当前的连接，如果 nil 表示没有连接
 	maxRetry int          // 最大重试次数
 }
@@ -18,7 +18,7 @@ func NewUDP(addr string, maxRetry int) *UDP {
 	// 创建UDP对象
 	udp := new(UDP)
 	// 赋值连接地址
-	udp.addr = addr
+	udp.Addr = addr
 	// 赋值最大重试此处
 	udp.maxRetry = maxRetry
 	// 未连接为空
@@ -30,7 +30,7 @@ func NewUDP(addr string, maxRetry int) *UDP {
 // 进行连接
 func (udp *UDP) connect() error {
 	// 创建地址结构
-	addr, err := net.ResolveUDPAddr("udp", udp.addr)
+	addr, err := net.ResolveUDPAddr("udp", udp.Addr)
 	if err != nil {
 		// 返回错误
 		return err
@@ -65,7 +65,7 @@ func (udp *UDP) connect() error {
 func (udp *UDP) ReadWrite(rw func(conn *net.UDPConn) error) error {
 	// 判断连接是否在使用
 	for udp.conn != nil {
-		log.Printf("connection [%s] in use", udp.addr)
+		log.Printf("connection [%s] in use", udp.Addr)
 		time.Sleep(1 * time.Second)
 	}
 	// 连接TCP
@@ -79,7 +79,7 @@ func (udp *UDP) ReadWrite(rw func(conn *net.UDPConn) error) error {
 		// 断开连接
 		closeErr := udp.close()
 		if closeErr != nil {
-			log.Printf("close the [%s] connection fail", udp.addr)
+			log.Printf("close the [%s] connection fail", udp.Addr)
 		}
 	})()
 	// 调用连接方法，传入TCP对象参数，并返回
