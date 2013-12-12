@@ -1,6 +1,7 @@
 package socket
 
 import (
+	"io"
 	"log"
 	"net"
 	"time"
@@ -66,25 +67,15 @@ func (tcp *TCP) connect() error {
 
 // 使用连接
 func (tcp *TCP) ReadWrite(rw func(conn *net.TCPConn) error) error {
-	// 判断连接是否在使用
-	for tcp.Conn != nil {
-		log.Printf("connection [%s-%s] in use", tcp.Addr, tcp.Port)
-		time.Sleep(1 * time.Second)
-	}
-	// 连接TCP
-	connErr := tcp.connect()
-	// 连接错误则返回
-	if connErr != nil {
-		return connErr
-	}
-	// 保证连接的正常关闭
-	defer (func() {
-		// 断开连接
-		closeErr := tcp.close()
-		if closeErr != nil {
-			log.Printf("close the [%s-%s] connection fail", tcp.Addr, tcp.Port)
+	// 判断连接是否断开,如果断开重新连接
+	for tcp.Conn == nil {
+		// 连接TCP
+		connErr := tcp.connect()
+		// 连接错误则返回
+		if connErr != nil {
+			return connErr
 		}
-	})()
+	}
 	// 调用连接方法，传入TCP对象参数，并返回
 	return rw(tcp.Conn)
 }
