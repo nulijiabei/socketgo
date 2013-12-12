@@ -8,21 +8,24 @@ import (
 
 // 根据 TCP 实现接口
 type TCP struct {
-	Addr     string       // 要连接地址与端口
-	conn     *net.TCPConn // 当前的连接，如果 nil 表示没有连接
+	Addr     string       // 要连接地址
+	Port     string       // 要连接端口
+	Conn     *net.TCPConn // 当前的连接，如果 nil 表示没有连接
 	maxRetry int          // 最大重试次数
 }
 
 // 建立一个 TCP 对象，addr 格式类似 "127.0.0.1:8080"
-func NewTCP(addr string, maxRetry int) *TCP {
+func NewTCP(addr string, port string, maxRetry int) *TCP {
 	// 创建TCP对象
 	tcp := new(TCP)
 	// 赋值地址
 	tcp.Addr = addr
+	// 赋值端口
+	tcp.Port = port
 	// 赋值最大连接数
 	tcp.maxRetry = tcp.maxRetry
 	// 未连接状态为空
-	tcp.conn = nil
+	tcp.Conn = nil
 	// 返回对象
 	return tcp
 }
@@ -30,7 +33,7 @@ func NewTCP(addr string, maxRetry int) *TCP {
 // 进行连接
 func (tcp *TCP) connect() error {
 	// 创建地址结构
-	addr, err := net.ResolveTCPAddr("tcp", tcp.Addr)
+	addr, err := net.ResolveTCPAddr("tcp", tcp.Addr+":"+tcp.Port)
 	if err != nil {
 		// 返回错误
 		return err
@@ -46,7 +49,7 @@ func (tcp *TCP) connect() error {
 			conn.SetReadBuffer(1048576)
 			conn.SetWriteBuffer(1048576)
 			// 将连接保存到对象
-			tcp.conn = conn
+			tcp.Conn = conn
 			// 跳出循环,连接成功
 			break
 		}
@@ -64,8 +67,8 @@ func (tcp *TCP) connect() error {
 // 使用连接
 func (tcp *TCP) ReadWrite(rw func(conn *net.TCPConn) error) error {
 	// 判断连接是否在使用
-	for tcp.conn != nil {
-		log.Printf("connection [%s] in use", tcp.Addr)
+	for tcp.Conn != nil {
+		log.Printf("connection [%s-%s] in use", tcp.Addr, tcp.Port)
 		time.Sleep(1 * time.Second)
 	}
 	// 连接TCP
@@ -79,26 +82,26 @@ func (tcp *TCP) ReadWrite(rw func(conn *net.TCPConn) error) error {
 		// 断开连接
 		closeErr := tcp.close()
 		if closeErr != nil {
-			log.Printf("close the [%s] connection fail", tcp.Addr)
+			log.Printf("close the [%s-%s] connection fail", tcp.Addr, tcp.Port)
 		}
 	})()
 	// 调用连接方法，传入TCP对象参数，并返回
-	return rw(tcp.conn)
+	return rw(tcp.Conn)
 }
 
 // 断开连接
 func (tcp *TCP) close() error {
 	// 如果连接已经是空
-	if tcp.conn == nil {
+	if tcp.Conn == nil {
 		return nil
 	}
 	// 断开连接
-	closeErr := tcp.conn.Close()
+	closeErr := tcp.Conn.Close()
 	if closeErr != nil {
 		return closeErr
 	}
 	// 清空连接
-	tcp.conn = nil
+	tcp.Conn = nil
 	// 返回
 	return nil
 }

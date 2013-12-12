@@ -6,16 +6,19 @@ import (
 
 // 监听结构
 type Listen struct {
-	Addr     string // 要监听的地址与端口
+	Addr     string // 要监听的地址
+	Port     string // 要监听的端口
 	maxRetry int    // 最大重试次数
 }
 
 // 创建监听对象
-func NewListen(addr string, maxRetry int) *Listen {
+func NewListen(addr string, port string, maxRetry int) *Listen {
 	// 创建对象
 	lt := new(Listen)
 	// 赋值地址
 	lt.Addr = addr
+	// 赋值端口
+	lt.Port = port
 	// 赋值最大重试次数
 	lt.maxRetry = maxRetry
 	// 返回对象
@@ -25,7 +28,7 @@ func NewListen(addr string, maxRetry int) *Listen {
 // TCP监听
 func (lt *Listen) ListenTCP() (*net.TCPListener, error) {
 	// 创建地址结构
-	addr, err := net.ResolveTCPAddr("tcp", lt.Addr)
+	addr, err := net.ResolveTCPAddr("tcp", lt.Addr+":"+lt.Port)
 	if err != nil {
 		// 地址结构创建失败
 		return nil, err
@@ -50,7 +53,7 @@ func (lt *Listen) ListenTCP() (*net.TCPListener, error) {
 // UDP监听
 func (lt *Listen) ListenUDP() (*net.UDPConn, error) {
 	// 创建地址结构
-	addr, err := net.ResolveUDPAddr("udp", lt.Addr)
+	addr, err := net.ResolveUDPAddr("udp", lt.Addr+":"+lt.Port)
 	if err != nil {
 		// 地址结构创建失败
 		return nil, err

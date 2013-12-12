@@ -8,21 +8,24 @@ import (
 
 // 根据 UDP 实现接口
 type UDP struct {
-	Addr     string       // 要连接地址与端口
-	conn     *net.UDPConn // 当前的连接，如果 nil 表示没有连接
+	Addr     string       // 要连接地址
+	Port     string       // 要连接端口
+	Conn     *net.UDPConn // 当前的连接，如果 nil 表示没有连接
 	maxRetry int          // 最大重试次数
 }
 
 // 建立一个 TCP 对象，addr 格式类似 "127.0.0.1:8080"
-func NewUDP(addr string, maxRetry int) *UDP {
+func NewUDP(addr string, port string, maxRetry int) *UDP {
 	// 创建UDP对象
 	udp := new(UDP)
 	// 赋值连接地址
 	udp.Addr = addr
+	// 赋值连接端口
+	udp.Port = port
 	// 赋值最大重试此处
 	udp.maxRetry = maxRetry
 	// 未连接为空
-	udp.conn = nil
+	udp.Conn = nil
 	// 返回对象
 	return udp
 }
@@ -30,7 +33,7 @@ func NewUDP(addr string, maxRetry int) *UDP {
 // 进行连接
 func (udp *UDP) connect() error {
 	// 创建地址结构
-	addr, err := net.ResolveUDPAddr("udp", udp.Addr)
+	addr, err := net.ResolveUDPAddr("udp", udp.Addr+":"+udp.Port)
 	if err != nil {
 		// 返回错误
 		return err
@@ -46,7 +49,7 @@ func (udp *UDP) connect() error {
 			conn.SetReadBuffer(1048576)
 			conn.SetWriteBuffer(1048576)
 			// 将连接保存到对象
-			udp.conn = conn
+			udp.Conn = conn
 			// 跳出循环,连接成功
 			break
 		}
@@ -64,8 +67,8 @@ func (udp *UDP) connect() error {
 // 使用连接
 func (udp *UDP) ReadWrite(rw func(conn *net.UDPConn) error) error {
 	// 判断连接是否在使用
-	for udp.conn != nil {
-		log.Printf("connection [%s] in use", udp.Addr)
+	for udp.Conn != nil {
+		log.Printf("connection [%s-%s] in use", udp.Addr, udp.Port)
 		time.Sleep(1 * time.Second)
 	}
 	// 连接TCP
@@ -79,26 +82,26 @@ func (udp *UDP) ReadWrite(rw func(conn *net.UDPConn) error) error {
 		// 断开连接
 		closeErr := udp.close()
 		if closeErr != nil {
-			log.Printf("close the [%s] connection fail", udp.Addr)
+			log.Printf("close the [%s-%s] connection fail", udp.Addr, udp.Port)
 		}
 	})()
 	// 调用连接方法，传入TCP对象参数，并返回
-	return rw(udp.conn)
+	return rw(udp.Conn)
 }
 
 // 断开连接
 func (udp *UDP) close() error {
 	// 如果连接已经是空
-	if udp.conn == nil {
+	if udp.Conn == nil {
 		return nil
 	}
 	// 断开连接
-	closeErr := udp.conn.Close()
+	closeErr := udp.Conn.Close()
 	if closeErr != nil {
 		return closeErr
 	}
 	// 清空连接
-	udp.conn = nil
+	udp.Conn = nil
 	// 返回
 	return nil
 }
