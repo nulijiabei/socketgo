@@ -1,10 +1,7 @@
 package socket
 
 import (
-	"io"
-	"log"
 	"net"
-	"time"
 )
 
 // 根据 TCP 实现接口
