@@ -20,4 +20,4 @@ socketgo
 	
 
 # 使用
-import socket "github.com/nulijiabei/socketgo"
+	import socket "github.com/nulijiabei/socketgo"
