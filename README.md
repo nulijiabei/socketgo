@@ -10,7 +10,7 @@ socketgo
 
 **自动安装**
 
-	go get github.com/nulijiabei/msocket
+	go get github.com/nulijiabei/socketgo
 	
 **手动安装**
 
